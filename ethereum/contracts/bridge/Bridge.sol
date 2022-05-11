@@ -76,7 +76,8 @@ contract Bridge is BridgeGovernance, ReentrancyGuard {
         // refund dust
         uint dust = amount - deNormalizeAmount(normalizedAmount, 18);
         if (dust > 0) {
-            payable(msg.sender).transfer(dust);
+            (bool success, ) = payable(msg.sender).call{value:dust}("");
+            require(success, "Transfer dust failed.");
         }
 
         // deposit into WETH
@@ -296,7 +297,8 @@ contract Bridge is BridgeGovernance, ReentrancyGuard {
             if (unwrapWETH) {
                 WETH().withdraw(nativeFee);
 
-                payable(msg.sender).transfer(nativeFee);
+                (bool success, ) = payable(msg.sender).call{value:nativeFee}("");
+                require(success, "Transfer fee failed.");
             } else {
                 if (transfer.tokenChain != chainId()) {
                     // mint wrapped asset
@@ -314,7 +316,8 @@ contract Bridge is BridgeGovernance, ReentrancyGuard {
         if (unwrapWETH) {
             WETH().withdraw(transferAmount);
 
-            payable(transferRecipient).transfer(transferAmount);
+            (bool success, ) = payable(transferRecipient).call{value:transferAmount}("");
+            require(success, "Transfer failed.");
         } else {
             if (transfer.tokenChain != chainId()) {
                 // mint wrapped asset
